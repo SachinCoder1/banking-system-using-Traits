@@ -1,7 +1,7 @@
 
 trait Account {
-    fn deposit(&mut self, amount: f64);
-    fn withdraw(&mut self, amount: f64);
+    fn deposit(&mut self, amount: f64) -> Result<(), String>;
+    fn withdraw(&mut self, amount: f64) -> Result<(), String>;
     fn balance(&self) -> f64;
 }
 
@@ -11,18 +11,24 @@ struct BankAccount {
     holder_name: String,
     balance: f64,
 }
-
-
 impl Account for BankAccount {
-    fn deposit(&mut self, amount: f64) {
-        self.balance += amount;
+    fn deposit(&mut self, amount: f64) -> Result<(), String> {
+        if amount > 0.0 {
+            self.balance += amount;
+            Ok(())
+        } else {
+            Err("Deposit amount must be positive".to_string())
+        }
     }
 
-    fn withdraw(&mut self, amount: f64) {
-        if amount <= self.balance {
+    fn withdraw(&mut self, amount: f64) -> Result<(), String> {
+        if amount > 0.0 && amount <= self.balance {
             self.balance -= amount;
+            Ok(())
+        } else if amount <= 0.0 {
+            Err("Withdrawal amount must be positive".to_string())
         } else {
-            println!("Insufficient funds.");
+            Err("Insufficient funds".to_string())
         }
     }
 
@@ -30,7 +36,6 @@ impl Account for BankAccount {
         self.balance
     }
 }
-
 
 fn main() {
     let mut account1 = BankAccount {
@@ -45,11 +50,15 @@ fn main() {
         balance: 0.0,
     };
 
-    account1.deposit(1000.0);
-    account2.deposit(500.0);
+    match account1.deposit(1000.0) {
+        Ok(_) => println!("Deposit successful"),
+        Err(e) => println!("Error: {}", e),
+    }
 
-    account1.withdraw(200.0);
-    account2.withdraw(700.0); // This should show "Insufficient funds."
+    match account2.withdraw(700.0) {
+        Ok(_) => println!("Withdrawal successful"),
+        Err(e) => println!("Error: {}", e),
+    }
 
     println!("Account 1 balance: {}", account1.balance());
     println!("Account 2 balance: {}", account2.balance());
